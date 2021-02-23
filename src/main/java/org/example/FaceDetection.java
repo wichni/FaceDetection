@@ -24,33 +24,47 @@ public class FaceDetection extends JFrame {
   private static final HaarCascadeDetector detector = new HaarCascadeDetector();
   private static final String PATH = "/home/jakub/Obrazy";
   private final Webcam webcam = Webcam.getDefault();
+  private final JFrame discoveredFaces = new JFrame();
+  private final int INTERVAL = 10000;
   private BufferedImage bufferedImage;
   private WebcamPanel webcamPanel;
   private ImagePanel imagePanel;
 
-  public FaceDetection() {
+  public FaceDetection() throws InterruptedException {
     webcam.setViewSize(WebcamResolution.VGA.getSize());
     webcam.open();
-    setTitle("Face Recognizer");
 
-    webcamPanel = new WebcamPanel(webcam);
-    webcamPanel.setImageSizeDisplayed(true);
-    webcamPanel.setMirrored(true);
+    while (true) {
+      if (!webcam.isOpen()) {
+        log.error("Webcam does not exist");
+        break;
+      }
+      bufferedImage = webcam.getImage();
 
-    bufferedImage = webcam.getImage();
-    imagePanel = new ImagePanel(bufferedImage);
-    imagePanel.setPreferredSize(WebcamResolution.VGA.getSize());
+      if (bufferedImage != null) {
+        imagePanel = new ImagePanel(bufferedImage);
+        imagePanel.setPreferredSize(WebcamResolution.VGA.getSize());
+        faceDetection();
+        Thread.sleep(INTERVAL);
+      } else {
+        log.error("Face has not been recognized");
+      }
 
-    add(imagePanel);
-    add(webcamPanel);
-    turnOffTheFrame();
-    pack();
-    setLocationRelativeTo(null);
-    setTheFrameToTurnOn(FaceDetection.this);
+      webcamPanel = new WebcamPanel(webcam);
+      webcamPanel.setMirrored(true);
+      webcamPanel.setImageSizeDisplayed(true);
+
+      add(imagePanel);
+      add(webcamPanel);
+      setTitle("Face Recognizer");
+      turnOffTheFrame();
+      pack();
+      setLocationRelativeTo(null);
+      setTheFrameToTurnOn(FaceDetection.this);
+    }
   }
 
   public void faceDetection() {
-    JFrame discoveredFaces = new JFrame("Discovered Faces");
     List<DetectedFace> faces = detector.detectFaces(ImageUtilities.createFImage(bufferedImage));
 
     for (DetectedFace face : faces) {
@@ -61,6 +75,7 @@ public class FaceDetection extends JFrame {
       savePhotoToFolder(face, facePatch);
     }
 
+    discoveredFaces.setTitle("Discovered Faces");
     discoveredFaces.setLayout(new FlowLayout(FlowLayout.LEFT));
     discoveredFaces.setSize(500, 500);
     turnOffTheFrame();
@@ -69,7 +84,7 @@ public class FaceDetection extends JFrame {
 
   private void savePhotoToFolder(DetectedFace face, FImage facePatch) {
     try {
-      OutputStream outputStream = new FileOutputStream(new File(PATH + File.separator + face + ".jpg"));
+      OutputStream outputStream = new FileOutputStream(String.valueOf(new File(PATH + File.separator + face + ".jpg")));
       ImageIO.write(ImageUtilities.createBufferedImage(facePatch), "jpg", outputStream);
     } catch (IOException e) {
       e.printStackTrace();
