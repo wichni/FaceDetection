@@ -3,4 +3,5 @@
 /.idea/
 /FaceRecognition.iml
 /target/
+/sonarlint/
 *.iml

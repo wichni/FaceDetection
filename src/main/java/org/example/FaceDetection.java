@@ -20,11 +20,12 @@ import java.io.OutputStream;
 import java.util.List;
 
 @Slf4j
-public class FaceDetection extends JFrame {
+public class FaceDetection {
   private static final HaarCascadeDetector detector = new HaarCascadeDetector();
   private static final String PATH = "/home/jakub/Obrazy";
   private final Webcam webcam = Webcam.getDefault();
-  private final JFrame discoveredFaces = new JFrame();
+  private final JFrame faceRecognizeFrame = new JFrame();
+  private final JFrame discoveredFacesFrame = new JFrame();
   private final int INTERVAL = 10000;
   private BufferedImage bufferedImage;
   private WebcamPanel webcamPanel;
@@ -46,21 +47,18 @@ public class FaceDetection extends JFrame {
         imagePanel.setPreferredSize(WebcamResolution.VGA.getSize());
         faceDetection();
         Thread.sleep(INTERVAL);
-      } else {
-        log.error("Face has not been recognized");
       }
 
       webcamPanel = new WebcamPanel(webcam);
       webcamPanel.setMirrored(true);
       webcamPanel.setImageSizeDisplayed(true);
 
-      add(imagePanel);
-      add(webcamPanel);
-      setTitle("Face Recognizer");
-      turnOffTheFrame();
-      pack();
-      setLocationRelativeTo(null);
-      setTheFrameToTurnOn(FaceDetection.this);
+      faceRecognizeFrame.add(imagePanel);
+      faceRecognizeFrame.add(webcamPanel);
+      faceRecognizeFrame.setTitle("Face Recognizer");
+      faceRecognizeFrame.pack();
+      faceRecognizeFrame.setLocationRelativeTo(null);
+      setTheFrameToTurnOnAndTurnOff(faceRecognizeFrame);
     }
   }
 
@@ -70,16 +68,15 @@ public class FaceDetection extends JFrame {
     for (DetectedFace face : faces) {
       FImage facePatch = face.getFacePatch();
       imagePanel = new ImagePanel(ImageUtilities.createBufferedImage(facePatch));
-      discoveredFaces.add(imagePanel);
+      discoveredFacesFrame.add(imagePanel);
       log.info("Face has been recognized and saved in the selected folder");
       savePhotoToFolder(face, facePatch);
     }
 
-    discoveredFaces.setTitle("Discovered Faces");
-    discoveredFaces.setLayout(new FlowLayout(FlowLayout.LEFT));
-    discoveredFaces.setSize(500, 500);
-    turnOffTheFrame();
-    setTheFrameToTurnOn(discoveredFaces);
+    discoveredFacesFrame.setTitle("Discovered Faces");
+    discoveredFacesFrame.setLayout(new FlowLayout(FlowLayout.LEFT));
+    discoveredFacesFrame.setSize(500, 500);
+    setTheFrameToTurnOnAndTurnOff(discoveredFacesFrame);
   }
 
   private void savePhotoToFolder(DetectedFace face, FImage facePatch) {
@@ -91,11 +88,8 @@ public class FaceDetection extends JFrame {
     }
   }
 
-  private void setTheFrameToTurnOn(JFrame frame) {
+  private void setTheFrameToTurnOnAndTurnOff(JFrame frame) {
     frame.setVisible(true);
-  }
-
-  private void turnOffTheFrame() {
-    setDefaultCloseOperation(3);
+    frame.setDefaultCloseOperation(3);
   }
 }
